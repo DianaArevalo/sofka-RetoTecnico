@@ -1,0 +1,145 @@
+@host = http://localhost:3000
+@api = {{host}}/api
+
+### Customers
+
+# Crear cliente 1
+POST {{api}}/customers
+Content-Type: application/json
+
+{
+  "name": "Juan Pérez",
+  "email": "juan@example.com",
+  "password": "password123",
+  "role": "SENDER"
+}
+
+###
+
+# Crear cliente 2
+POST {{api}}/customers
+Content-Type: application/json
+
+{
+  "name": "María García",
+  "email": "maria@example.com",
+  "password": "password456",
+  "role": "SENDER"
+}
+
+###
+
+# Listar clientes
+GET {{api}}/customers
+
+###
+
+# Obtener cliente por ID (reemplazar con uuid real)
+GET {{api}}/customers/UUID
+
+###
+
+# Actualizar cliente (reemplazar con uuid real)
+PATCH {{api}}/customers/UUID
+Content-Type: application/json
+
+{
+  "name": "Juan Updated"
+}
+
+###
+
+# Eliminar cliente (reemplazar con uuid real)
+DELETE {{api}}/customers/UUID
+
+### Shipments
+
+# Crear envío STANDARD (éxito)
+POST {{api}}/shipments
+Content-Type: application/json
+
+{
+  "senderId": "REEMPLAZAR_CON_UUID_SENDER",
+  "recipientId": "REEMPLAZAR_CON_UUID_RECIPIENT",
+  "declaredValue": 1000000,
+  "type": "STANDARD",
+  "metadata": {
+    "weightKg": 5
+  }
+}
+
+###
+
+# Crear envío EXPRESS (éxito)
+POST {{api}}/shipments
+Content-Type: application/json
+
+{
+  "senderId": "REEMPLAZAR_CON_UUID_SENDER",
+  "recipientId": "REEMPLAZAR_CON_UUID_RECIPIENT",
+  "declaredValue": 2000000,
+  "type": "EXPRESS",
+  "metadata": {
+    "weightKg": 3
+  }
+}
+
+###
+
+# Crear envío EXPRESS (error - peso > 5kg)
+POST {{api}}/shipments
+Content-Type: application/json
+
+{
+  "senderId": "REEMPLAZAR_CON_UUID_SENDER",
+  "recipientId": "REEMPLAZAR_CON_UUID_RECIPIENT",
+  "declaredValue": 100000,
+  "type": "EXPRESS",
+  "metadata": {
+    "weightKg": 10
+  }
+}
+
+###
+
+# Crear envío INTERNATIONAL (éxito)
+POST {{api}}/shipments
+Content-Type: application/json
+
+{
+  "senderId": "REEMPLAZAR_CON_UUID_SENDER",
+  "recipientId": "REEMPLAZAR_CON_UUID_RECIPIENT",
+  "declaredValue": 5000000,
+  "type": "INTERNATIONAL",
+  "metadata": {
+    "destinationCountry": "USA",
+    "customsDeclaration": "Artículos de electrónica"
+  }
+}
+
+###
+
+# Crear envío THIRD_PARTY_CARRIER (éxito)
+POST {{api}}/shipments
+Content-Type: application/json
+
+{
+  "senderId": "REEMPLAZAR_CON_UUID_SENDER",
+  "recipientId": "REEMPLAZAR_CON_UUID_RECIPIENT",
+  "declaredValue": 500000,
+  "type": "THIRD_PARTY_CARRIER",
+  "metadata": {
+    "carrierName": "DHL",
+    "externalTrackingId": "DHL123456"
+  }
+}
+
+###
+
+# Obtener envío por ID
+GET {{api}}/shipments/UUID
+
+###
+
+# Obtener envíos por cliente
+GET {{api}}/shipments/customer/UUID
