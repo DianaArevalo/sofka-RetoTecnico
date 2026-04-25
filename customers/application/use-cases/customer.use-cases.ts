@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { CustomerPort } from '../../domain/ports/customer.port';
-import { Customer, CreateCustomerDto, UpdateCustomerDto } from '../../domain/entities/customer.entity';
+import { CustomerPort, CreateCustomerInput, UpdateCustomerInput } from '../../domain/ports/customer.port';
+import { Customer } from '../../domain/entities/customer.entity';
 import { CustomerNotFoundException } from '../../domain/exceptions/customer.exceptions';
 
 @Injectable()
 export class CreateCustomerUseCase {
   constructor(private readonly customerPort: CustomerPort) {}
 
-  async execute(dto: CreateCustomerDto): Promise<Customer> {
-    return this.customerPort.create(dto);
+  async execute(input: CreateCustomerInput): Promise<Customer> {
+    return this.customerPort.create(input);
   }
 }
 
@@ -38,8 +38,8 @@ export class GetCustomerByIdUseCase {
 export class UpdateCustomerUseCase {
   constructor(private readonly customerPort: CustomerPort) {}
 
-  async execute(id: string, dto: UpdateCustomerDto): Promise<Customer> {
-    const customer = await this.customerPort.update(id, dto);
+  async execute(id: string, input: UpdateCustomerInput): Promise<Customer> {
+    const customer = await this.customerPort.update(id, input);
     if (!customer) {
       throw new CustomerNotFoundException(id);
     }

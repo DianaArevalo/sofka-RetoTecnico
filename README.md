@@ -1,6 +1,6 @@
 # Courier API
 
-API de gestión de envíos con arquitectura hexagonal, patrón Strategy y Observer.
+API de gestión de envíos con **Arquitectura Hexagonal** + **DDD** (Domain-Driven Design).
 
 ## Stack
 
@@ -11,22 +11,93 @@ API de gestión de envíos con arquitectura hexagonal, patrón Strategy y Observ
 - **class-validator** - Validación declarativa de DTOs
 - **Swagger/OpenAPI** - Documentación de API
 
-## Arquitectura Hexagonal
+## Arquitectura Hexagonal + DDD
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    APPLICATION                              │
+│                 (Use Cases / Services)                      │
+│    - CreateShipmentUseCase                                  │
+│    - GetShipmentByIdUseCase                                 │
+│    - GetShipmentsByCustomerUseCase                          │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+┌─────────────────────────▼───────────────────────────────────┐
+│                        DOMAIN                                │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                  ENTITIES                            │    │
+│  │  - Shipment (lógica de negocio + métodos)            │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                 VALUE OBJECTS                        │    │
+│  │  - Money (encapsula lógica monetaria)                │    │
+│  │  - ShipmentType (enum con números: 1,2,3,4)         │    │
+│  │  - ShipmentStatus (enum con números: 1,2,3,4)       │    │
+│  │  - ShipmentMetadata (interfaz)                       │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                    PORTS                             │    │
+│  │  - ShipmentPort (interfaz del repositorio)          │    │
+│  │  - ShippingStrategyPort (interfaz de estrategias)   │    │
+│  │  - EventPublisherPort (interfaz de eventos)         │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+┌─────────────────────────▼───────────────────────────────────┐
+│                    INFRASTRUCTURE                           │
+│  ┌─────────────────────┐  ┌─────────────────────────────┐  │
+│  │        HTTP         │  │         PERSISTENCE          │  │
+│  │  (Adapters entrada) │  │      (Adapters salida)       │  │
+│  │  - DTOs             │  │  - ORM Entities              │  │
+│  │  - Validación       │  │  - Repositories              │  │
+│  │  - Swagger          │  │  - Mappers                   │  │
+│  └─────────────────────┘  └─────────────────────────────┘  │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                    EVENTS                            │    │
+│  │  - KafkaEventPublisher                               │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Estructura de Módulos
 
 ```
 src/
-├── customers/           # Módulo de clientes
-│   ├── domain/        # Entidades, puertos, excepciones
-│   ├── application/   # Use cases
-│   └── infrastructure/# Repositorios, filtros
-├── shipments/        # Módulo de envíos
+├── shipments/                    # Módulo de envíos
 │   ├── domain/
-│   ├── application/   # Strategies
+│   │   ├── entities/
+│   │   │   ├── shipment.entity.ts           # Entidad PURA
+│   │   │   ├── shipment-type.value-object.ts    # Enum (números)
+│   │   │   ├── shipment-status.value-object.ts  # Enum (números)
+│   │   │   ├── shipment-metadata.value-object.ts
+│   │   │   └── money.value-object.ts            # Value Object
+│   │   ├── ports/
+│   │   │   ├── shipment.port.ts           # Interfaz repositorio
+│   │   │   └── shipping-strategy.port.ts  # Interfaz estrategias
+│   │   └── exceptions/
+│   ├── application/
+│   │   ├── use-cases/                    # Casos de uso
+│   │   └── strategies/                   # Strategy pattern
 │   └── infrastructure/
-├── notifications/     # Consumer de notificaciones
-├── audit/             # Consumer de auditoría
-└── shared/           # Eventos, filtros
+│       ├── http/dtos/                    # DTOs + Swagger
+│       ├── persistence/
+│       │   ├── shipment.orm-entity.ts    # Entity ORM (TypeORM)
+│       │   ├── shipment.mapper.ts        # Mapper
+│       │   └── shipment.repository.ts    # Implementación puerto
+│       └── filters/
+├── customers/                   # Módulo de clientes
+├── notifications/               # Consumer de notificaciones
+├── audit/                       # Consumer de auditoría
+└── shared/                      # Eventos, filtros
 ```
+
+### Principios Aplicados
+
+1. **Dominio puro**: 0 dependencias externas (sin NestJS, TypeORM, Swagger)
+2. **Entidades inmutables**: métodos `withStatus()`, `withShippingCost()`
+3. **Value Objects**: `Money`, `ShipmentType`, `ShipmentStatus`
+4. **Mappers**: conversión ORM ↔ Domain ↔ Response
+5. **Puertos**: interfaces que definen el contrato
 
 ## Patrones Aplicados
 
@@ -44,6 +115,23 @@ src/
 
 ### Mapper
 - Conversión entre entidades ORM y modelos de dominio
+- Conversión a DTOs de respuesta
+
+## Value Objects con Números
+
+Los enums se almacenan como números en la BD pero se muestran como strings en la API:
+
+```typescript
+// Dominio (números)
+enum ShipmentType { STANDARD = 1, EXPRESS = 2, INTERNATIONAL = 3, THIRD_PARTY_CARRIER = 4 }
+enum ShipmentStatus { PENDING = 1, DELIVERED = 2, IN_CUSTOMS = 3, FAILED = 4 }
+
+// HTTP/DTO (strings para el cliente)
+enum ShipmentTypeEnum { STANDARD = 'STANDARD', EXPRESS = 'EXPRESS', ... }
+
+// BD (int)
+type: number  // 1, 2, 3, 4
+```
 
 ## Levantar el Proyecto
 
@@ -117,7 +205,7 @@ POST /api/shipments
 }
 ```
 
-### Crear envío EXPRESS (error示例)
+### Crear envío EXPRESS (error)
 ```bash
 POST /api/shipments
 {

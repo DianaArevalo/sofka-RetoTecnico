@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { CustomerPort } from '../../domain/ports/customer.port';
-import { Customer, CreateCustomerDto, UpdateCustomerDto, CustomerRole } from '../../domain/entities/customer.entity';
+import { CustomerPort, CreateCustomerInput, UpdateCustomerInput } from '../../domain/ports/customer.port';
+import { Customer, CustomerRole } from '../../domain/entities/customer.entity';
 import { CustomerOrmEntity } from './customer.orm-entity';
-import { CustomerMapper } from '../../domain/mappers/customer.mapper';
+import { CustomerMapper } from './customer.mapper';
 import { EmailAlreadyExistsException } from '../../domain/exceptions/email-already-exists.exception';
 import { CustomerNotFoundException } from '../../domain/exceptions/customer.exceptions';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class CustomerRepository implements CustomerPort {
@@ -33,32 +34,37 @@ export class CustomerRepository implements CustomerPort {
     return CustomerMapper.toDomain(ormEntity);
   }
 
-  async create(dto: CreateCustomerDto): Promise<Customer> {
-    const existing = await this.repository.findOne({ where: { email: dto.email } });
+  async create(input: CreateCustomerInput): Promise<Customer> {
+    const existing = await this.repository.findOne({ where: { email: input.email } });
     if (existing) {
-      throw new EmailAlreadyExistsException(dto.email);
+      throw new EmailAlreadyExistsException(input.email);
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const ormEntity = new CustomerOrmEntity();
-    ormEntity.name = dto.name;
-    ormEntity.email = dto.email;
-    ormEntity.password = hashedPassword;
-    ormEntity.role = dto.role || CustomerRole.SENDER;
-    ormEntity.isActive = true;
+    const hashedPassword = await bcrypt.hash(input.password, 10);
+    const now = new Date();
+    const ormEntity = this.repository.create({
+      id: uuidv4(),
+      name: input.name,
+      email: input.email,
+      password: hashedPassword,
+      role: (input.role || CustomerRole.SENDER) as unknown as number,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    });
 
     const saved = await this.repository.save(ormEntity);
     return CustomerMapper.toDomain(saved);
   }
 
-  async update(id: string, dto: UpdateCustomerDto): Promise<Customer> {
+  async update(id: string, input: UpdateCustomerInput): Promise<Customer> {
     const ormEntity = await this.repository.findOne({ where: { id } });
     if (!ormEntity) {
       throw new CustomerNotFoundException(id);
     }
 
-    if (dto.name) ormEntity.name = dto.name;
-    if (dto.role) ormEntity.role = dto.role;
+    if (input.name) ormEntity.name = input.name;
+    if (input.role) ormEntity.role = input.role as unknown as number;
 
     const saved = await this.repository.save(ormEntity);
     return CustomerMapper.toDomain(saved);

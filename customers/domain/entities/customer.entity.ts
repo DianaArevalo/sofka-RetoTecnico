@@ -1,74 +1,66 @@
-import { IsEmail, IsEnum, IsString, IsBoolean, IsOptional, IsUUID, MinLength } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Exclude } from 'class-transformer';
+import { CustomerRole } from './customer-role.value-object';
 
-export enum CustomerRole {
-  ADMIN = 'ADMIN',
-  SENDER = 'SENDER',
-}
+export { CustomerRole };
 
 export class Customer {
-  @ApiProperty({ format: 'uuid' })
-  @IsUUID()
-  id: string;
+  readonly id: string;
+  readonly name: string;
+  readonly email: string;
+  readonly passwordHash: string;
+  readonly role: CustomerRole;
+  readonly isActive: boolean;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
 
-  @ApiProperty()
-  @IsString()
-  @MinLength(1)
-  name: string;
-
-  @ApiProperty({ format: 'email' })
-  @IsEmail()
-  email: string;
-
-  @Exclude()
-  password: string;
-
-  @ApiProperty({ enum: CustomerRole })
-  @IsEnum(CustomerRole)
-  role: CustomerRole;
-
-  @ApiProperty()
-  @IsBoolean()
-  isActive: boolean;
-
-  createdAt: Date;
-  updatedAt: Date;
-
-  constructor(partial: Partial<Customer>) {
-    Object.assign(this, partial);
+  constructor(props: {
+    id: string;
+    name: string;
+    email: string;
+    passwordHash: string;
+    role: CustomerRole;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  }) {
+    this.id = props.id;
+    this.name = props.name;
+    this.email = props.email;
+    this.passwordHash = props.passwordHash;
+    this.role = props.role;
+    this.isActive = props.isActive;
+    this.createdAt = props.createdAt;
+    this.updatedAt = props.updatedAt;
   }
-}
 
-export class CreateCustomerDto {
-  @ApiProperty()
-  @IsString()
-  @MinLength(1)
-  name: string;
+  deactivate(): Customer {
+    return new Customer({
+      ...this,
+      isActive: false,
+      updatedAt: new Date(),
+    });
+  }
 
-  @ApiProperty({ format: 'email' })
-  @IsEmail()
-  email: string;
+  canSendShipments(): boolean {
+    return this.isActive && this.role === CustomerRole.SENDER;
+  }
 
-  @ApiProperty()
-  @IsString()
-  @MinLength(6)
-  password: string;
+  isAdmin(): boolean {
+    return this.role === CustomerRole.ADMIN;
+  }
 
-  @ApiPropertyOptional({ enum: CustomerRole })
-  @IsOptional()
-  @IsEnum(CustomerRole)
-  role?: CustomerRole;
-}
+  withName(name: string): Customer {
+    return new Customer({
+      ...this,
+      name,
+      updatedAt: new Date(),
+    });
+  }
 
-export class UpdateCustomerDto {
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  name?: string;
-
-  @ApiPropertyOptional({ enum: CustomerRole })
-  @IsOptional()
-  @IsEnum(CustomerRole)
-  role?: CustomerRole;
+  withRole(role: CustomerRole): Customer {
+    return new Customer({
+      ...this,
+      role,
+      updatedAt: new Date(),
+    });
+  }
 }
