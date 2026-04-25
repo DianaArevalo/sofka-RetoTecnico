@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ShipmentPort } from '../../domain/ports/shipment.port';
-import { Shipment, CreateShipmentDto } from '../../domain/entities/shipment.entity';
+import { ShipmentPort, CreateShipmentInput } from '../../domain/ports/shipment.port';
+import { Shipment, ShipmentStatus, Money } from '../../domain/entities/shipment.entity';
 import { ShipmentOrmEntity } from './shipment.orm-entity';
-import { ShipmentMapper } from '../../domain/mappers/shipment.mapper';
+import { ShipmentMapper } from './shipment.mapper';
 import { CustomerPort } from '../../../customers/domain/ports/customer.port';
 import { ShipmentNotFoundException, CustomerNotActiveException, CustomerNotFoundShipmentException } from '../../domain/exceptions/shipment.exceptions';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ShipmentRepository implements ShipmentPort {
@@ -30,31 +31,35 @@ export class ShipmentRepository implements ShipmentPort {
     return ormEntities.map(ShipmentMapper.toDomain);
   }
 
-  async create(dto: CreateShipmentDto, shippingCost: number, status: string): Promise<Shipment> {
-    const sender = await this.customerPort.findById(dto.senderId);
+  async create(input: CreateShipmentInput, shippingCost: Money, status: ShipmentStatus): Promise<Shipment> {
+    const sender = await this.customerPort.findById(input.senderId);
     if (!sender) {
-      throw new CustomerNotFoundShipmentException(dto.senderId);
+      throw new CustomerNotFoundShipmentException(input.senderId);
     }
     if (!sender.isActive) {
-      throw new CustomerNotActiveException(dto.senderId);
+      throw new CustomerNotActiveException(input.senderId);
     }
 
-    const recipient = await this.customerPort.findById(dto.recipientId);
+    const recipient = await this.customerPort.findById(input.recipientId);
     if (!recipient) {
-      throw new CustomerNotFoundShipmentException(dto.recipientId);
+      throw new CustomerNotFoundShipmentException(input.recipientId);
     }
     if (!recipient.isActive) {
-      throw new CustomerNotActiveException(dto.recipientId);
+      throw new CustomerNotActiveException(input.recipientId);
     }
 
+    const now = new Date();
     const ormEntity = this.repository.create({
-      senderId: dto.senderId,
-      recipientId: dto.recipientId,
-      declaredValue: dto.declaredValue,
-      shippingCost,
-      type: dto.type,
-      status: status as any,
-      metadata: dto.metadata as unknown as Record<string, unknown>,
+      id: uuidv4(),
+      senderId: input.senderId,
+      recipientId: input.recipientId,
+      declaredValue: input.declaredValue,
+      shippingCost: shippingCost.value,
+      type: input.type as unknown as number,
+      status: status as unknown as number,
+      metadata: input.metadata as Record<string, unknown>,
+      createdAt: now,
+      updatedAt: now,
     });
 
     const saved = await this.repository.save(ormEntity);

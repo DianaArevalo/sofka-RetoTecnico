@@ -1,8 +1,12 @@
 import { Controller, Get, Post, Body, Param, HttpCode, HttpStatus, UseFilters } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateShipmentUseCase, GetShipmentByIdUseCase, GetShipmentsByCustomerUseCase } from './application/use-cases/shipment.use-cases';
-import { CreateShipmentDto } from './domain/entities/shipment.entity';
+import { CreateShipmentInput } from './domain/ports/shipment.port';
+import { ShipmentMapper } from './infrastructure/persistence/shipment.mapper';
+import { CreateShipmentDto, ShipmentTypeEnum } from './infrastructure/http/dtos/create-shipment.dto';
+import { ShipmentResponseDto } from './infrastructure/http/dtos/shipment-response.dto';
 import { ShipmentDomainExceptionFilter } from './infrastructure/filters/shipment-domain-exception.filter';
+import { ShipmentType } from './domain/entities/shipment-type.value-object';
 
 @ApiTags('shipments')
 @Controller('shipments')
@@ -20,22 +24,32 @@ export class ShipmentsController {
   @ApiResponse({ status: 201, description: 'Envío creado correctamente' })
   @ApiResponse({ status: 400, description: 'Validación fallida' })
   @ApiResponse({ status: 404, description: 'Cliente no encontrado' })
-  async create(@Body() dto: CreateShipmentDto) {
-    return this.createShipmentUseCase.execute(dto);
+  async create(@Body() dto: CreateShipmentDto): Promise<ShipmentResponseDto> {
+    const input: CreateShipmentInput = {
+      senderId: dto.senderId,
+      recipientId: dto.recipientId,
+      declaredValue: dto.declaredValue,
+      type: dto.type as unknown as ShipmentType,
+      metadata: dto.metadata as Record<string, unknown> | undefined,
+    };
+    const shipment = await this.createShipmentUseCase.execute(input);
+    return ShipmentMapper.toResponse(shipment);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener envío por ID' })
   @ApiResponse({ status: 200, description: 'Envío encontrado' })
   @ApiResponse({ status: 404, description: 'Envío no encontrado' })
-  async findOne(@Param('id') id: string) {
-    return this.getShipmentByIdUseCase.execute(id);
+  async findOne(@Param('id') id: string): Promise<ShipmentResponseDto> {
+    const shipment = await this.getShipmentByIdUseCase.execute(id);
+    return ShipmentMapper.toResponse(shipment);
   }
 
   @Get('customer/:id')
   @ApiOperation({ summary: 'Obtener envíos por cliente' })
   @ApiResponse({ status: 200, description: 'Lista de envíos' })
-  async findByCustomer(@Param('id') id: string) {
-    return this.getShipmentsByCustomerUseCase.execute(id);
+  async findByCustomer(@Param('id') id: string): Promise<ShipmentResponseDto[]> {
+    const shipments = await this.getShipmentsByCustomerUseCase.execute(id);
+    return shipments.map(ShipmentMapper.toResponse);
   }
 }

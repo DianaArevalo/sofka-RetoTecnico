@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ShippingStrategyPort } from '../../domain/ports/shipping-strategy.port';
 import { ShipmentMetadata } from '../../domain/entities/shipment.entity';
+import { Money } from '../../domain/entities/money.value-object';
+import { ShipmentStatus } from '../../domain/entities/shipment-status.value-object';
 import { InvalidShipmentException } from '../../domain/exceptions/shipment.exceptions';
 
 @Injectable()
@@ -14,13 +16,13 @@ export class StandardShippingStrategy implements ShippingStrategyPort {
     }
   }
 
-  calculateCost(declaredValue: number, metadata: ShipmentMetadata): number {
+  calculateCost(declaredValue: number, metadata: ShipmentMetadata): Money {
     const cost = declaredValue * 0.001;
-    return cost < 5000 ? 5000 : cost;
+    return new Money(cost < 5000 ? 5000 : cost);
   }
 
-  getFinalStatus(): string {
-    return 'DELIVERED';
+  getFinalStatus(): ShipmentStatus {
+    return ShipmentStatus.DELIVERED;
   }
 }
 
@@ -38,12 +40,12 @@ export class ExpressShippingStrategy implements ShippingStrategyPort {
     }
   }
 
-  calculateCost(declaredValue: number, metadata: ShipmentMetadata): number {
-    return 15000;
+  calculateCost(declaredValue: number, metadata: ShipmentMetadata): Money {
+    return new Money(15000);
   }
 
-  getFinalStatus(): string {
-    return 'DELIVERED';
+  getFinalStatus(): ShipmentStatus {
+    return ShipmentStatus.DELIVERED;
   }
 }
 
@@ -64,12 +66,12 @@ export class InternationalShippingStrategy implements ShippingStrategyPort {
     }
   }
 
-  calculateCost(declaredValue: number, metadata: ShipmentMetadata): number {
-    return 50000 + declaredValue * 0.02;
+  calculateCost(declaredValue: number, metadata: ShipmentMetadata): Money {
+    return new Money(50000 + declaredValue * 0.02);
   }
 
-  getFinalStatus(): string {
-    return 'IN_CUSTOMS';
+  getFinalStatus(): ShipmentStatus {
+    return ShipmentStatus.IN_CUSTOMS;
   }
 }
 
@@ -87,11 +89,11 @@ export class ThirdPartyCarrierShippingStrategy implements ShippingStrategyPort {
     }
   }
 
-  calculateCost(declaredValue: number, metadata: ShipmentMetadata): number {
-    return declaredValue * 0.05;
+  calculateCost(declaredValue: number, metadata: ShipmentMetadata): Money {
+    return new Money(declaredValue * 0.05);
   }
 
-  getFinalStatus(): string {
-    return 'DELIVERED';
+  getFinalStatus(): ShipmentStatus {
+    return ShipmentStatus.DELIVERED;
   }
 }

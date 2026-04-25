@@ -1,8 +1,7 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Kafka, Producer } from 'kafkajs';
-import { EventPublisherPort } from '../ports/event-publisher.port';
-import { ShipmentEvent } from '../../../shipments/domain/entities/shipment-event.entity';
+import { EventPublisherPort, ShipmentEvent } from '../ports/event-publisher.port';
 
 @Injectable()
 export class KafkaEventPublisher implements EventPublisherPort, OnModuleInit, OnModuleDestroy {

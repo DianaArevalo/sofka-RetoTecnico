@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { ShipmentPort } from '../../domain/ports/shipment.port';
+import { ShipmentPort, CreateShipmentInput } from '../../domain/ports/shipment.port';
 import { ShippingStrategyPort } from '../../domain/ports/shipping-strategy.port';
-import { Shipment, CreateShipmentDto, ShipmentType, ShipmentStatus } from '../../domain/entities/shipment.entity';
+import { Shipment, ShipmentType, ShipmentStatus, ShipmentMetadata, Money } from '../../domain/entities/shipment.entity';
 import { EventPublisherPort } from '../../../shared/events/ports/event-publisher.port';
 import { ShipmentNotFoundException } from '../../domain/exceptions/shipment.exceptions';
 import { StandardShippingStrategy, ExpressShippingStrategy, InternationalShippingStrategy, ThirdPartyCarrierShippingStrategy } from '../strategies/shipping-strategies';
@@ -22,23 +22,23 @@ export class CreateShipmentUseCase {
     private readonly eventPublisher: EventPublisherPort,
   ) {}
 
-  async execute(dto: CreateShipmentDto): Promise<Shipment> {
-    const strategy = SHIPPING_STRATEGIES[dto.type];
+  async execute(input: CreateShipmentInput): Promise<Shipment> {
+    const strategy = SHIPPING_STRATEGIES[input.type];
     if (!strategy) {
-      throw new Error(`Tipo de envío no soportado: ${dto.type}`);
+      throw new Error(`Tipo de envío no soportado: ${input.type}`);
     }
 
-    strategy.validate(dto.metadata || {}, dto.declaredValue, dto.senderId, dto.recipientId);
+    strategy.validate(input.metadata || {}, input.declaredValue, input.senderId, input.recipientId);
 
-    const shippingCost = strategy.calculateCost(dto.declaredValue, dto.metadata || {});
+    const shippingCost = strategy.calculateCost(input.declaredValue, input.metadata || {});
     const finalStatus = strategy.getFinalStatus();
 
-    const shipment = await this.shipmentPort.create(dto, shippingCost, finalStatus);
+    const shipment = await this.shipmentPort.create(input, shippingCost, finalStatus);
 
     const topicMap: Record<string, string> = {
-      DELIVERED: 'shipment.dispatched',
-      IN_CUSTOMS: 'shipment.in_customs',
-      FAILED: 'shipment.failed',
+      [ShipmentStatus.DELIVERED]: 'shipment.dispatched',
+      [ShipmentStatus.IN_CUSTOMS]: 'shipment.in_customs',
+      [ShipmentStatus.FAILED]: 'shipment.failed',
     };
 
     const topic = topicMap[finalStatus];

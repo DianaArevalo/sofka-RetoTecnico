@@ -1,108 +1,67 @@
-import { IsEnum, IsNumber, IsString, IsOptional, IsObject, IsUUID, Min } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ShipmentType } from './shipment-type.value-object';
+import { ShipmentStatus } from './shipment-status.value-object';
+import { ShipmentMetadata } from './shipment-metadata.value-object';
+import { Money } from './money.value-object';
 
-export enum ShipmentType {
-  STANDARD = 'STANDARD',
-  EXPRESS = 'EXPRESS',
-  INTERNATIONAL = 'INTERNATIONAL',
-  THIRD_PARTY_CARRIER = 'THIRD_PARTY_CARRIER',
-}
-
-export enum ShipmentStatus {
-  PENDING = 'PENDING',
-  DELIVERED = 'DELIVERED',
-  IN_CUSTOMS = 'IN_CUSTOMS',
-  FAILED = 'FAILED',
-}
-
-export class ShipmentMetadata {
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
-  weightKg?: number;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  destinationCountry?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  customsDeclaration?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  carrierName?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  externalTrackingId?: string;
-}
+export { ShipmentType, ShipmentStatus, ShipmentMetadata, Money };
 
 export class Shipment {
-  @ApiProperty({ format: 'uuid' })
-  @IsUUID()
-  id: string;
+  readonly id: string;
+  readonly senderId: string;
+  readonly recipientId: string;
+  readonly declaredValue: Money;
+  readonly shippingCost: Money;
+  readonly type: ShipmentType;
+  readonly status: ShipmentStatus;
+  readonly metadata?: ShipmentMetadata;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
 
-  @ApiProperty({ format: 'uuid' })
-  senderId: string;
-
-  @ApiProperty({ format: 'uuid' })
-  recipientId: string;
-
-  @ApiProperty()
-  @IsNumber()
-  @Min(1)
-  declaredValue: number;
-
-  @ApiProperty()
-  @IsNumber()
-  shippingCost: number;
-
-  @ApiProperty({ enum: ShipmentType })
-  @IsEnum(ShipmentType)
-  type: ShipmentType;
-
-  @ApiProperty({ enum: ShipmentStatus })
-  @IsEnum(ShipmentStatus)
-  status: ShipmentStatus;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsObject()
-  metadata?: ShipmentMetadata;
-
-  createdAt: Date;
-  updatedAt: Date;
-
-  constructor(partial: Partial<Shipment>) {
-    Object.assign(this, partial);
+  constructor(props: {
+    id: string;
+    senderId: string;
+    recipientId: string;
+    declaredValue: Money;
+    shippingCost: Money;
+    type: ShipmentType;
+    status: ShipmentStatus;
+    metadata?: ShipmentMetadata;
+    createdAt: Date;
+    updatedAt: Date;
+  }) {
+    this.id = props.id;
+    this.senderId = props.senderId;
+    this.recipientId = props.recipientId;
+    this.declaredValue = props.declaredValue;
+    this.shippingCost = props.shippingCost;
+    this.type = props.type;
+    this.status = props.status;
+    this.metadata = props.metadata;
+    this.createdAt = props.createdAt;
+    this.updatedAt = props.updatedAt;
   }
-}
 
-export class CreateShipmentDto {
-  @ApiProperty({ format: 'uuid' })
-  @IsUUID()
-  senderId: string;
+  isInternational(): boolean {
+    return this.type === ShipmentType.INTERNATIONAL;
+  }
 
-  @ApiProperty({ format: 'uuid' })
-  @IsUUID()
-  recipientId: string;
+  canModifyStatus(): boolean {
+    return this.status !== ShipmentStatus.DELIVERED && this.status !== ShipmentStatus.FAILED;
+  }
 
-  @ApiProperty()
-  @IsNumber()
-  @Min(1)
-  declaredValue: number;
+  withStatus(status: ShipmentStatus): Shipment {
+    return new Shipment({
+      ...this,
+      status,
+      updatedAt: new Date(),
+    });
+  }
 
-  @ApiProperty({ enum: ShipmentType })
-  @IsEnum(ShipmentType)
-  type: ShipmentType;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsObject()
-  metadata?: ShipmentMetadata;
+  withShippingCost(cost: Money): Shipment {
+    return new Shipment({
+      ...this,
+      shippingCost: cost,
+      updatedAt: new Date(),
+    });
+  }
 }

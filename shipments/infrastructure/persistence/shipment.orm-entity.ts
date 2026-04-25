@@ -1,6 +1,4 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
-import { ShipmentType, ShipmentStatus } from '../../domain/entities/shipment.entity';
 
 @Entity('shipments')
 export class ShipmentOrmEntity {
@@ -19,11 +17,11 @@ export class ShipmentOrmEntity {
   @Column({ type: 'decimal', precision: 15, scale: 2 })
   shippingCost: number;
 
-  @Column({ type: 'enum', enum: ShipmentType })
-  type: ShipmentType;
+  @Column({ type: 'int', default: 1 })
+  type: number;
 
-  @Column({ type: 'enum', enum: ShipmentStatus, default: ShipmentStatus.PENDING })
-  status: ShipmentStatus;
+  @Column({ type: 'int', default: 1 })
+  status: number;
 
   @Column({ type: 'jsonb', nullable: true })
   metadata: Record<string, unknown>;
