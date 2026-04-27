@@ -1,39 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { ShipmentPort, CreateShipmentInput } from '../../domain/ports/shipment.port';
 import { ShippingStrategyPort } from '../../domain/ports/shipping-strategy.port';
 import { Shipment, ShipmentType, ShipmentStatus, ShipmentMetadata, Money } from '../../domain/entities/shipment.entity';
 import { EventPublisherPort } from '../../../shared/events/ports/event-publisher.port';
 import { ShipmentNotFoundException } from '../../domain/exceptions/shipment.exceptions';
-import { StandardShippingStrategy, ExpressShippingStrategy, InternationalShippingStrategy, ThirdPartyCarrierShippingStrategy } from '../strategies/shipping-strategies';
-import { Inject } from '@nestjs/common';
-
-const SHIPPING_STRATEGIES: Record<string, ShippingStrategyPort> = {
-  STANDARD: new StandardShippingStrategy(),
-  EXPRESS: new ExpressShippingStrategy(),
-  INTERNATIONAL: new InternationalShippingStrategy(),
-  THIRD_PARTY_CARRIER: new ThirdPartyCarrierShippingStrategy(),
-};
+import { InvalidShipmentException } from '../../domain/exceptions/shipment.exceptions';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class CreateShipmentUseCase {
   constructor(
     private readonly shipmentPort: ShipmentPort,
+    private readonly strategies: Map<ShipmentType, ShippingStrategyPort>,
     @Inject('EventPublisher')
     private readonly eventPublisher: EventPublisherPort,
   ) {}
 
   async execute(input: CreateShipmentInput): Promise<Shipment> {
-    const strategy = SHIPPING_STRATEGIES[input.type];
-    if (!strategy) {
-      throw new Error(`Tipo de envío no soportado: ${input.type}`);
+    if (input.senderId === input.recipientId) {
+      throw new InvalidShipmentException('El remitente y el destinatario no pueden ser el mismo');
     }
 
-    strategy.validate(input.metadata || {}, input.declaredValue, input.senderId, input.recipientId);
+    const shipment = new Shipment({
+      id: uuidv4(),
+      senderId: input.senderId,
+      recipientId: input.recipientId,
+      declaredValue: new Money(input.declaredValue),
+      shippingCost: new Money(0),
+      type: input.type,
+      status: ShipmentStatus.PENDING,
+      metadata: input.metadata,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
-    const shippingCost = strategy.calculateCost(input.declaredValue, input.metadata || {});
-    const finalStatus = strategy.getFinalStatus();
+    const strategy = this.strategies.get(shipment.type);
+    if (!strategy) {
+      throw new InvalidShipmentException(`Tipo de envío no soportado: ${shipment.type}`);
+    }
 
-    const shipment = await this.shipmentPort.create(input, shippingCost, finalStatus);
+    const processedShipment = strategy.execute(shipment);
+
+    const savedShipment = await this.shipmentPort.create(processedShipment);
 
     const topicMap: Record<string, string> = {
       [ShipmentStatus.DELIVERED]: 'shipment.dispatched',
@@ -41,21 +49,21 @@ export class CreateShipmentUseCase {
       [ShipmentStatus.FAILED]: 'shipment.failed',
     };
 
-    const topic = topicMap[finalStatus];
+    const topic = topicMap[savedShipment.status];
     if (topic) {
       await this.eventPublisher.publish(topic, {
-        shipmentId: shipment.id,
-        senderId: shipment.senderId,
-        recipientId: shipment.recipientId,
-        declaredValue: shipment.declaredValue,
-        shippingCost: shipment.shippingCost,
-        type: shipment.type,
-        status: shipment.status,
+        shipmentId: savedShipment.id,
+        senderId: savedShipment.senderId,
+        recipientId: savedShipment.recipientId,
+        declaredValue: savedShipment.declaredValue,
+        shippingCost: savedShipment.shippingCost,
+        type: savedShipment.type,
+        status: savedShipment.status,
         timestamp: new Date(),
       });
     }
 
-    return shipment;
+    return savedShipment;
   }
 }
 
