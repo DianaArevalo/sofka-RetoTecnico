@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { ShipmentPort, CreateShipmentInput } from '../../domain/ports/shipment.port';
 import { ShippingStrategyPort } from '../../domain/ports/shipping-strategy.port';
 import { Shipment, ShipmentType, ShipmentStatus, ShipmentMetadata, Money } from '../../domain/entities/shipment.entity';
-import { EventPublisherPort } from '../../../shared/events/ports/event-publisher.port';
+import { EventPublisherPort } from '../../../shared/events/domain/ports/event-publisher.port';
 import { ShipmentNotFoundException } from '../../domain/exceptions/shipment.exceptions';
 import { InvalidShipmentException } from '../../domain/exceptions/shipment.exceptions';
 import { v4 as uuidv4 } from 'uuid';
