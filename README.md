@@ -249,3 +249,29 @@ DB_NAME=courier_db
 KAFKA_BROKER=localhost:9092
 KAFKA_CLIENT_ID=courier-api
 ```
+
+## Postman Collection
+
+Archivos disponibles en la raíz del proyecto:
+- `postman-collection.json` - Colección con endpoints configurados
+- `postman-environment.json` - Variables de entorno (base_url, IDs dinámicos)
+
+### Cambios Recientes en la Collection
+
+Se actualizaron las variables para coincidir con los DTOs y ejemplos funcionales:
+
+**Crear Cliente - Remitente:**
+- `role`: `"USER"` → `"SENDER"` (coincide con `CustomerRole` enum)
+
+**Crear Cliente - Destinatario:**
+- `name`: `"Maria Lopez"` → `"Andres Suarez"`
+- `email`: `"maria@email.com"` → `"andresuare@email.com"`
+- `role`: `"USER"` → `"ADMIN"`
+
+**Crear Envío - Metadata:**
+- `weight`: `"2kg"` (string) → `weightKg`: `2` (number)
+- `origin`: eliminado (campo no existe en `ShipmentMetadataDto`)
+- `destinationCountry`: `"China"` → `"Colombia"`
+- Agregado: `customsDeclaration`: `"Invoice-001"`
+
+Las variables `{{sender_id}}`, `{{recipient_id}}` y `{{shipment_id}}` se asignan automáticamente mediante scripts de test al crear clientes/envíos.
