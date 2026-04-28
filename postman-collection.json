@@ -1,0 +1,230 @@
+{
+  "info": {
+    "name": "Sofka Reto Tecnico - API",
+    "description": "Colección de Postman para probar los endpoints de la aplicación Sofka",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [],
+  "auth": {
+    "type": "noauth"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": []
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": []
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Crear Cliente - Remitente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('customer_id_1', jsonData.id);",
+                  "    pm.collectionVariables.set('sender_id', jsonData.id);",
+                  "    console.log('Customer ID 1 (Sender): ' + jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Juan Perez\",\n  \"email\": \"juan@email.com\",\n  \"password\": \"123456\",\n  \"role\": \"USER\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers"]
+            }
+          }
+        },
+        {
+          "name": "Crear Cliente - Destinatario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('customer_id_2', jsonData.id);",
+                  "    pm.collectionVariables.set('recipient_id', jsonData.id);",
+                  "    console.log('Customer ID 2 (Recipient): ' + jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Maria Lopez\",\n  \"email\": \"maria@email.com\",\n  \"password\": \"123456\",\n  \"role\": \"USER\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers"]
+            }
+          }
+        },
+        {
+          "name": "Listar Clientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Cliente por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/customers/{{customer_id_1}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers", "{{customer_id_1}}"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar Cliente",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Juan Perez Actualizado\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/customers/{{customer_id_1}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers", "{{customer_id_1}}"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar Cliente",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/customers/{{customer_id_2}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers", "{{customer_id_2}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shipments",
+      "item": [
+        {
+          "name": "Crear Envío",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('shipment_id', jsonData.id);",
+                  "    console.log('Shipment ID: ' + jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senderId\": \"{{sender_id}}\",\n  \"recipientId\": \"{{recipient_id}}\",\n  \"declaredValue\": 1500.50,\n  \"type\": \"INTERNATIONAL\",\n  \"metadata\": {\n    \"weight\": \"2kg\",\n    \"origin\": \"China\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/shipments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shipments"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Envío por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/shipments/{{shipment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shipments", "{{shipment_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Envíos por Cliente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/shipments/customer/{{customer_id_1}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shipments", "customer", "{{customer_id_1}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

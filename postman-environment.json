@@ -1,0 +1,42 @@
+{
+  "id": "sofka-reto-tecnico-env",
+  "name": "Sofka Reto Tecnico - Local",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "customer_id_1",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "customer_id_2",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "shipment_id",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "sender_id",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "recipient_id",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    }
+  ]
+}
