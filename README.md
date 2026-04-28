@@ -11,6 +11,12 @@ API de gestión de envíos con **Arquitectura Hexagonal** + **DDD** (Domain-Driv
 - **class-validator** - Validación declarativa de DTOs
 - **Swagger/OpenAPI** - Documentación de API
 
+## Requisitos Previos
+
+- Node.js >= 18.x
+- npm >= 9.x
+- Docker Desktop (o Docker Engine + Docker Compose)
+
 ## Arquitectura Hexagonal + DDD
 
 ```
