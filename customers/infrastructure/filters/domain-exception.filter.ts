@@ -11,13 +11,18 @@ export class DomainExceptionFilter implements ExceptionFilter {
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Error interno del servidor';
-    const err = exception as Error;
 
-    if (err) {
-      message = err.message;
+    if (exception instanceof EmailAlreadyExistsException) {
+      status = HttpStatus.CONFLICT;
+      message = exception.message;
+    } else if (exception instanceof CustomerNotFoundException) {
+      status = HttpStatus.NOT_FOUND;
+      message = exception.message;
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       message = exception.getResponse() as string;
+    } else if (exception instanceof Error) {
+      message = exception.message;
     }
 
     response.status(status).json({
