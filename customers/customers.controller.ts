@@ -23,7 +23,7 @@ export class CustomersController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Crear cliente' })
-  @ApiResponse({ status: 201, description: 'Cliente creado correctamente' })
+  @ApiResponse({ status: 201, description: 'Cliente creado correctamente', type: CustomerResponseDto })
   @ApiResponse({ status: 409, description: 'Email duplicado' })
   async create(@Body() dto: CreateCustomerDto): Promise<CustomerResponseDto> {
     const input: CreateCustomerInput = {
@@ -38,7 +38,7 @@ export class CustomersController {
 
   @Get()
   @ApiOperation({ summary: 'Listar todos los clientes' })
-  @ApiResponse({ status: 200, description: 'Lista de clientes' })
+  @ApiResponse({ status: 200, description: 'Lista de clientes', type: [CustomerResponseDto] })
   async findAll(): Promise<CustomerResponseDto[]> {
     const customers = await this.getAllCustomersUseCase.execute();
     return customers.map(CustomerMapper.toResponse);
@@ -46,7 +46,7 @@ export class CustomersController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener cliente por ID' })
-  @ApiResponse({ status: 200, description: 'Cliente encontrado' })
+  @ApiResponse({ status: 200, description: 'Cliente encontrado', type: CustomerResponseDto })
   @ApiResponse({ status: 404, description: 'Cliente no encontrado' })
   async findOne(@Param('id') id: string): Promise<CustomerResponseDto> {
     const customer = await this.getCustomerByIdUseCase.execute(id);
@@ -55,7 +55,7 @@ export class CustomersController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar cliente' })
-  @ApiResponse({ status: 200, description: 'Cliente actualizado' })
+  @ApiResponse({ status: 200, description: 'Cliente actualizado', type: CustomerResponseDto })
   @ApiResponse({ status: 404, description: 'Cliente no encontrado' })
   async update(@Param('id') id: string, @Body() dto: UpdateCustomerDto): Promise<CustomerResponseDto> {
     const input: UpdateCustomerInput = {

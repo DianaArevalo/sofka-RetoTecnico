@@ -31,7 +31,7 @@ export class ShipmentsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Crear envío' })
-  @ApiResponse({ status: 201, description: 'Envío creado correctamente' })
+  @ApiResponse({ status: 201, description: 'Envío creado correctamente', type: ShipmentResponseDto })
   @ApiResponse({ status: 400, description: 'Validación fallida' })
   @ApiResponse({ status: 404, description: 'Cliente no encontrado' })
   async create(@Body() dto: CreateShipmentDto): Promise<ShipmentResponseDto> {
@@ -48,7 +48,7 @@ export class ShipmentsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener envío por ID' })
-  @ApiResponse({ status: 200, description: 'Envío encontrado' })
+  @ApiResponse({ status: 200, description: 'Envío encontrado', type: ShipmentResponseDto })
   @ApiResponse({ status: 404, description: 'Envío no encontrado' })
   async findOne(@Param('id') id: string): Promise<ShipmentResponseDto> {
     const shipment = await this.getShipmentByIdUseCase.execute(id);
@@ -57,7 +57,7 @@ export class ShipmentsController {
 
   @Get('customer/:id')
   @ApiOperation({ summary: 'Obtener envíos por cliente' })
-  @ApiResponse({ status: 200, description: 'Lista de envíos' })
+  @ApiResponse({ status: 200, description: 'Lista de envíos', type: [ShipmentResponseDto] })
   async findByCustomer(@Param('id') id: string): Promise<ShipmentResponseDto[]> {
     const shipments = await this.getShipmentsByCustomerUseCase.execute(id);
     return shipments.map(ShipmentMapper.toResponse);

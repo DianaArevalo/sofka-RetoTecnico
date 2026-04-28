@@ -22,10 +22,10 @@ export class CustomerResponseDto {
   @ApiProperty()
   isActive: boolean;
 
-  @ApiProperty()
+  @ApiProperty({ type: 'string', format: 'date-time' })
   createdAt: Date;
 
-  @ApiProperty()
+  @ApiProperty({ type: 'string', format: 'date-time' })
   updatedAt: Date;
 
   constructor(
