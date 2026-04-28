@@ -56,7 +56,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Juan Perez\",\n  \"email\": \"juan@email.com\",\n  \"password\": \"123456\",\n  \"role\": \"USER\"\n}"
+              "raw": "{\n  \"name\": \"Juan Perez\",\n  \"email\": \"juan@email.com\",\n  \"password\": \"123456\",\n  \"role\": \"SENDER\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/customers",
@@ -93,7 +93,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Maria Lopez\",\n  \"email\": \"maria@email.com\",\n  \"password\": \"123456\",\n  \"role\": \"USER\"\n}"
+              "raw": "{\n  \"name\": \"Andres Suarez\",\n  \"email\": \"andresuare@email.com\",\n  \"password\": \"123456\",\n  \"role\": \"ADMIN\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/customers",
@@ -191,7 +191,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"senderId\": \"{{sender_id}}\",\n  \"recipientId\": \"{{recipient_id}}\",\n  \"declaredValue\": 1500.50,\n  \"type\": \"INTERNATIONAL\",\n  \"metadata\": {\n    \"weight\": \"2kg\",\n    \"origin\": \"China\"\n  }\n}"
+              "raw": "{\n  \"senderId\": \"{{sender_id}}\",\n  \"recipientId\": \"{{recipient_id}}\",\n  \"declaredValue\": 1500.50,\n  \"type\": \"INTERNATIONAL\",\n  \"metadata\": {\n    \"weightKg\": 2,\n    \"destinationCountry\": \"Colombia\",\n    \"customsDeclaration\": \"Invoice-001\"\n  }\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/shipments",
