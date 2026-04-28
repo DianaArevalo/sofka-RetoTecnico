@@ -1,10 +1,7 @@
+import { Transform } from 'class-transformer';
 import { IsEmail, IsString, IsOptional, IsEnum, MinLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-
-export enum CustomerRoleEnum {
-  ADMIN = 'ADMIN',
-  SENDER = 'SENDER',
-}
+import { CustomerRole } from '../../../domain/entities/customer-role.value-object';
 
 export class CreateCustomerDto {
   @ApiProperty()
@@ -21,10 +18,16 @@ export class CreateCustomerDto {
   @MinLength(6)
   password: string;
 
-  @ApiPropertyOptional({ enum: CustomerRoleEnum })
+  @ApiPropertyOptional({ enum: CustomerRole, enumName: 'CustomerRole' })
   @IsOptional()
-  @IsEnum(CustomerRoleEnum)
-  role?: CustomerRoleEnum;
+  @Transform(({ value }) => {
+    if (typeof value === 'string' && value in CustomerRole) {
+      return CustomerRole[value as keyof typeof CustomerRole];
+    }
+    return value;
+  })
+  @IsEnum(CustomerRole)
+  role?: CustomerRole;
 }
 
 export class UpdateCustomerDto {
@@ -34,8 +37,14 @@ export class UpdateCustomerDto {
   @MinLength(1)
   name?: string;
 
-  @ApiPropertyOptional({ enum: CustomerRoleEnum })
+  @ApiPropertyOptional({ enum: CustomerRole, enumName: 'CustomerRole' })
   @IsOptional()
-  @IsEnum(CustomerRoleEnum)
-  role?: CustomerRoleEnum;
+  @Transform(({ value }) => {
+    if (typeof value === 'string' && value in CustomerRole) {
+      return CustomerRole[value as keyof typeof CustomerRole];
+    }
+    return value;
+  })
+  @IsEnum(CustomerRole)
+  role?: CustomerRole;
 }
