@@ -10,10 +10,9 @@ import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class CreateShipmentUseCase {
   constructor(
-    private readonly shipmentPort: ShipmentPort,
-    private readonly strategies: Map<ShipmentType, ShippingStrategyPort>,
-    @Inject('EventPublisher')
-    private readonly eventPublisher: EventPublisherPort,
+    @Inject('ShipmentPort') private readonly shipmentPort: ShipmentPort,
+    @Inject('SHIPPING_STRATEGIES') private readonly strategies: Map<ShipmentType, ShippingStrategyPort>,
+    @Inject('EventPublisher') private readonly eventPublisher: EventPublisherPort,
   ) {}
 
   async execute(input: CreateShipmentInput): Promise<Shipment> {
@@ -69,7 +68,7 @@ export class CreateShipmentUseCase {
 
 @Injectable()
 export class GetShipmentByIdUseCase {
-  constructor(private readonly shipmentPort: ShipmentPort) {}
+  constructor(@Inject('ShipmentPort') private readonly shipmentPort: ShipmentPort) {}
 
   async execute(id: string): Promise<Shipment> {
     const shipment = await this.shipmentPort.findById(id);
@@ -82,7 +81,7 @@ export class GetShipmentByIdUseCase {
 
 @Injectable()
 export class GetShipmentsByCustomerUseCase {
-  constructor(private readonly shipmentPort: ShipmentPort) {}
+  constructor(@Inject('ShipmentPort') private readonly shipmentPort: ShipmentPort) {}
 
   async execute(customerId: string): Promise<Shipment[]> {
     return this.shipmentPort.findByCustomerId(customerId);

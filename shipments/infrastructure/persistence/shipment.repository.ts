@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ShipmentPort } from '../../domain/ports/shipment.port';
@@ -13,7 +13,7 @@ export class ShipmentRepository implements ShipmentPort {
   constructor(
     @InjectRepository(ShipmentOrmEntity)
     private readonly repository: Repository<ShipmentOrmEntity>,
-    private readonly customerPort: CustomerPort,
+    @Inject('CustomerPort') private readonly customerPort: CustomerPort,
   ) {}
 
   async findById(id: string): Promise<Shipment | null> {

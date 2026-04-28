@@ -10,12 +10,16 @@ import { CreateCustomerUseCase, GetAllCustomersUseCase, GetCustomerByIdUseCase, 
   controllers: [CustomersController],
   providers: [
     CustomerRepository,
+    {
+      provide: 'CustomerPort',
+      useExisting: CustomerRepository,
+    },
     CreateCustomerUseCase,
     GetAllCustomersUseCase,
     GetCustomerByIdUseCase,
     UpdateCustomerUseCase,
     DeleteCustomerUseCase,
   ],
-  exports: [CustomerRepository],
+  exports: [CustomerRepository, 'CustomerPort'],
 })
 export class CustomersModule {}

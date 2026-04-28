@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Inject } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ShipmentsController } from './shipments.controller';
 import { ShipmentOrmEntity } from './infrastructure/persistence/shipment.orm-entity';
@@ -18,6 +18,10 @@ import { ShipmentType } from './domain/entities/shipment-type.value-object';
   controllers: [ShipmentsController],
   providers: [
     ShipmentRepository,
+    {
+      provide: 'ShipmentPort',
+      useExisting: ShipmentRepository,
+    },
     StandardShippingStrategy,
     ExpressShippingStrategy,
     InternationalShippingStrategy,
