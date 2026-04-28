@@ -22,11 +22,10 @@ export class AuditConsumer implements OnModuleInit, OnModuleDestroy {
     await this.consumer.subscribe({ topic: 'shipment.in_customs', fromBeginning: false });
     await this.consumer.subscribe({ topic: 'shipment.failed', fromBeginning: false });
 
-    let offset = 0;
     await this.consumer.run({
       eachMessage: async ({ topic, partition, message }: EachMessagePayload) => {
         const event = JSON.parse(message.value?.toString() || '{}');
-        console.log(`[AUDIT] Topic: ${topic} | Partition: ${partition} | Offset: ${offset++} | ShipmentId: ${event.shipmentId} | Timestamp: ${new Date().toISOString()}`);
+        console.log(`[AUDIT] Topic: ${topic} | Partition: ${partition} | Offset: ${message.offset} | ShipmentId: ${event.shipmentId} | Timestamp: ${event.timestamp}`);
         this.logger.log(`[AUDIT] Traza registrada: ${topic} - ${event.shipmentId}`);
       },
     });

@@ -26,7 +26,7 @@ export class NotificationsConsumer implements OnModuleInit, OnModuleDestroy {
       eachMessage: async ({ topic, message }: EachMessagePayload) => {
         const event = JSON.parse(message.value?.toString() || '{}');
         this.logger.log(`[NOTIFICATION] Envío dispatched: ${JSON.stringify(event)}`);
-        console.log(`[NOTIFICATIONS] Notificación enviada: Envío ${event.shipmentId} - Estado: ${event.status} - Valor: $${event.declaredValue}`);
+        console.log(`[NOTIFICATIONS] Notificación enviada: Envío ${event.shipmentId} - Estado: ${event.status} - Valor: $${event.declaredValue} - Timestamp: ${event.timestamp}`);
       },
     });
 
