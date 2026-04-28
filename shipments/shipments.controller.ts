@@ -18,6 +18,16 @@ export class ShipmentsController {
     private readonly getShipmentsByCustomerUseCase: GetShipmentsByCustomerUseCase,
   ) {}
 
+  private mapStringToShipmentType(type: ShipmentTypeEnum): ShipmentType {
+    const mapping: Record<ShipmentTypeEnum, ShipmentType> = {
+      [ShipmentTypeEnum.STANDARD]: ShipmentType.STANDARD,
+      [ShipmentTypeEnum.EXPRESS]: ShipmentType.EXPRESS,
+      [ShipmentTypeEnum.INTERNATIONAL]: ShipmentType.INTERNATIONAL,
+      [ShipmentTypeEnum.THIRD_PARTY_CARRIER]: ShipmentType.THIRD_PARTY_CARRIER,
+    };
+    return mapping[type];
+  }
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Crear envío' })
@@ -29,7 +39,7 @@ export class ShipmentsController {
       senderId: dto.senderId,
       recipientId: dto.recipientId,
       declaredValue: dto.declaredValue,
-      type: dto.type as unknown as ShipmentType,
+      type: this.mapStringToShipmentType(dto.type),
       metadata: dto.metadata as Record<string, unknown> | undefined,
     };
     const shipment = await this.createShipmentUseCase.execute(input);
